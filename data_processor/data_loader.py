@@ -30,7 +30,7 @@ def load_data(FLAGS, use_buckets=True, load_features=True):
 def read_data(FLAGS, split, source, target, use_buckets=True, buckets=None,
               add_start_token=False, add_end_token=False, load_features=True):
     def get_data_file_path(data_dir, split, lang, channel):
-        return os.path.join(data_dir, '{}.{}.{}'.format(split, lang, channel))
+        return os.path.join(data_dir, '{}.{}.json'.format(split, channel))
 
     def get_source_ids(s):
         source_ids = []

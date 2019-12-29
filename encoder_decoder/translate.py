@@ -15,7 +15,7 @@ import sys
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import json
 import math
@@ -25,7 +25,7 @@ from tqdm import tqdm
 
 import tensorflow as tf
 
-from data_processor import data_utils
+from data_processor import data_utils, data_processor, data_loader
 from encoder_decoder import decode_tools
 from encoder_decoder import graph_utils
 from encoder_decoder import meta_experiments
@@ -149,7 +149,7 @@ def train(train_set, test_set, verbose=False):
                 # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
                 if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]):
                     break
-           
+
                 previous_dev_losses.append(dev_loss)
 
                 sys.stdout.flush()
@@ -238,7 +238,7 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set):
     # hp_set2 = {'universal_keep': 0.6}
     # hp_set3 = {'universal_keep': 0.7}
     # hyperparam_sets = [hp_set1, hp_set2, hp_set3]
-    
+
     hp_set1 = {'universal_keep': 0.6, 'rnn_cell': 'gru', 'num_layers': 2}
     hp_set2 = {'universal_keep': 0.75, 'rnn_cell': 'gru', 'num_layers': 2}
     hyperparam_sets = [hp_set1, hp_set2]
@@ -249,14 +249,14 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set):
 
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
-    data_utils.process_data(FLAGS)
+    data_processor.process_data(FLAGS)
 
 
 def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
- 
+
     # set up data and model directories
     FLAGS.data_dir = os.path.join(
         os.path.dirname(__file__), "..", "data", FLAGS.dataset)
@@ -293,7 +293,7 @@ def main(_):
         process_data()
 
     else:
-        train_set, dev_set, test_set = data_utils.load_data(
+        train_set, dev_set, test_set = data_loader.load_data(
             FLAGS, use_buckets=False, load_features=False)
         dataset = test_set if FLAGS.test else dev_set
 
@@ -317,9 +317,9 @@ def main(_):
         elif FLAGS.tabulate_example_predictions:
             error_analysis.tabulate_example_predictions(dataset, FLAGS, num_examples=100)
         else:
-            train_set, dev_set, test_set = data_utils.load_data(FLAGS, use_buckets=True)
+            train_set, dev_set, test_set = data_loader.load_data(FLAGS, use_buckets=True)
             dataset = test_set if FLAGS.test else dev_set
-            vocab = data_utils.load_vocabulary(FLAGS)
+            vocab = data_loader.load_vocabulary(FLAGS)
 
             print("Set dataset parameters")
             FLAGS.max_sc_length = train_set.max_sc_length if not train_set.buckets else \
@@ -373,6 +373,6 @@ def main(_):
                 if not FLAGS.explain:
                     eval(dataset, verbose=True)
 
-    
+
 if __name__ == "__main__":
     tf.compat.v1.app.run()
